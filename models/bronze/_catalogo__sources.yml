@@ -1,0 +1,68 @@
+# =============================================================================
+# Source catalogo · capa Bronze
+# =============================================================================
+# Catálogo de producto extraído de los lookbooks (PDF) de cada temporada, y las
+# imágenes de cada referencia. Se cargan en Bronze con COPY INTO desde el stage
+# carga_bronze; dbt solo los declara para poder usar
+#     {{ source('catalogo', '<tabla>') }}
+# Sin freshness: el catálogo se carga una vez por temporada.
+# =============================================================================
+
+sources:
+  - name: catalogo
+    description: Catálogo de producto de Lola Casademunt, por temporada.
+    database: "{{ env_var('DBT_BRONZE_DB') }}"
+    schema: catalogo
+
+    tables:
+      - name: productos
+        description: >
+          Una fila por referencia de producto, tal como sale de la extracción de
+          los lookbooks. Todas las columnas llegan como texto.
+        columns:
+          - name: referencia
+            description: >
+              Código del producto (p. ej. LF2602024_057). Los dígitos 5-6 son el
+              código de familia. A veces viene con punto en vez de guion bajo.
+          - name: capsula_codigo
+            description: Código de la cápsula dentro de la temporada (puede ser nulo).
+          - name: capsula_nombre
+            description: Nombre de la cápsula.
+          - name: subcapsula
+            description: Subcápsula dentro de la cápsula.
+          - name: nombre
+            description: Nombre comercial del producto en español.
+          - name: nombre_en
+            description: Nombre comercial del producto en inglés.
+          - name: subfamilia
+            description: Tipo de prenda o accesorio (Vestido, Bandolera...). Escrita de varias formas.
+          - name: fecha_entrada
+            description: Fecha de entrada en tienda, como texto.
+          - name: rango_tallas
+            description: Tallas disponibles.
+          - name: pvp_es
+            description: Precio de venta en España, como texto (a veces con "€" y coma decimal).
+          - name: pvp_and
+            description: Precio de venta en Andorra, como texto.
+          - name: color
+            description: Color del producto.
+          - name: descripcion
+            description: Descripción comercial.
+          - name: composicion
+            description: Composición del tejido.
+          - name: temporada
+            description: Temporada a la que pertenece (SS26, FW25-26...).
+          - name: catalogo
+            description: Lookbook de origen.
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.
+
+      - name: imagenes_producto
+        description: Imagen de cada referencia, codificada en base64.
+        columns:
+          - name: referencia
+            description: Código del producto.
+          - name: image_data_uri
+            description: Imagen como data URI (data:image/...;base64,...).
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.

@@ -1,0 +1,122 @@
+# =============================================================================
+# Source contador · capa Bronze
+# =============================================================================
+# Datos del contador de personas de las tiendas, para dos indicadores (kpi):
+# entradas a la tienda y tráfico exterior delante del escaparate.
+#   - trafico_franjas: carga histórica, una fila por tienda, día y kpi con una
+#     columna por franja de 30 minutos (f_0900 ... f_2230). Cerrada.
+#   - trafico_tiempo_real: una fila por tienda, día, franja y kpi. Llega en
+#     lotes cada 30 minutos (Snowflake Task), así que es la única con freshness.
+# dbt solo los declara para poder usar {{ source('contador', '<tabla>') }}.
+# =============================================================================
+
+sources:
+  - name: contador
+    description: Tráfico de personas de las tiendas de Lola Casademunt.
+    database: "{{ env_var('DBT_BRONZE_DB') }}"
+    schema: contador
+
+    tables:
+      - name: trafico_franjas
+        description: >
+          Histórico de tráfico en formato ancho: una columna por franja. Los
+          valores llegan como texto (puede haber "Sin datos" o negativos).
+        columns:
+          - name: sfid
+            description: Código de la tienda en el sistema del contador.
+          - name: tienda
+            description: Nombre de la tienda.
+          - name: fecha
+            description: Día, como texto.
+          - name: kpi
+            description: "(ENT) Entradas o (Ext) Tráfico Exterior."
+          - name: f_0900
+            description: Personas en la franja 09:00.
+          - name: f_0930
+            description: Personas en la franja 09:30.
+          - name: f_1000
+            description: Personas en la franja 10:00.
+          - name: f_1030
+            description: Personas en la franja 10:30.
+          - name: f_1100
+            description: Personas en la franja 11:00.
+          - name: f_1130
+            description: Personas en la franja 11:30.
+          - name: f_1200
+            description: Personas en la franja 12:00.
+          - name: f_1230
+            description: Personas en la franja 12:30.
+          - name: f_1300
+            description: Personas en la franja 13:00.
+          - name: f_1330
+            description: Personas en la franja 13:30.
+          - name: f_1400
+            description: Personas en la franja 14:00.
+          - name: f_1430
+            description: Personas en la franja 14:30.
+          - name: f_1500
+            description: Personas en la franja 15:00.
+          - name: f_1530
+            description: Personas en la franja 15:30.
+          - name: f_1600
+            description: Personas en la franja 16:00.
+          - name: f_1630
+            description: Personas en la franja 16:30.
+          - name: f_1700
+            description: Personas en la franja 17:00.
+          - name: f_1730
+            description: Personas en la franja 17:30.
+          - name: f_1800
+            description: Personas en la franja 18:00.
+          - name: f_1830
+            description: Personas en la franja 18:30.
+          - name: f_1900
+            description: Personas en la franja 19:00.
+          - name: f_1930
+            description: Personas en la franja 19:30.
+          - name: f_2000
+            description: Personas en la franja 20:00.
+          - name: f_2030
+            description: Personas en la franja 20:30.
+          - name: f_2100
+            description: Personas en la franja 21:00.
+          - name: f_2130
+            description: Personas en la franja 21:30.
+          - name: f_2200
+            description: Personas en la franja 22:00.
+          - name: f_2230
+            description: Personas en la franja 22:30.
+          - name: _source_file
+            description: Fichero del stage del que se cargó la fila.
+          - name: _source_row_number
+            description: Número de fila dentro de ese fichero.
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.
+
+      - name: trafico_tiempo_real
+        description: >
+          Tráfico en formato largo, cargado en lotes de 30 minutos durante el día.
+        config:
+          loaded_at_field: _loaded_at
+          freshness:
+            warn_after: {count: 24, period: hour}
+            error_after: {count: 48, period: hour}
+        columns:
+          - name: sfid
+            description: Código de la tienda en el sistema del contador.
+          - name: tienda
+            description: Nombre de la tienda.
+          - name: fecha
+            description: Día, como texto.
+          - name: franja
+            description: Hora de inicio de la franja (HH:MM).
+          - name: kpi
+            description: "(ENT) Entradas o (Ext) Tráfico Exterior."
+          - name: valor
+            description: Número de personas, como texto.
+          - name: _source_file
+            description: Fichero del stage del que se cargó la fila.
+          - name: _source_row_number
+            description: Número de fila dentro de ese fichero.
+          - name: _loaded_at
+            description: Momento de la carga en Bronze. Lo usa el freshness.

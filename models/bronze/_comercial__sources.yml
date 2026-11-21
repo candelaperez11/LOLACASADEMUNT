@@ -1,0 +1,31 @@
+# =============================================================================
+# Source comercial · capa Bronze
+# =============================================================================
+# Datos de la red comercial: tiendas, estructura de áreas y objetivos.
+# Se cargan en Bronze con COPY INTO desde el stage carga_bronze; dbt solo los
+# declara para poder usar {{ source('comercial', '<tabla>') }}.
+# Sin freshness: son maestros que solo se recargan cuando algo cambia, no muy frecuentemente (por despidos o cambios raro)
+# =============================================================================
+
+sources:
+  - name: comercial
+    description: Datos de la red comercial de Lola Casademunt
+    database: "{{ env_var('DBT_BRONZE_DB') }}"
+    schema: comercial
+
+    tables:
+      - name: estructura_comercial
+        description: Asignación de cada tienda a su área y su área manager
+        columns:
+          - name: tienda_id
+            description: Código de la tienda.
+          - name: area_id
+            description: Código del área comercial
+          - name: area
+            description: Nombre del área.
+          - name: area_manager_id
+            description: Código del área manager
+          - name: area_manager
+            description: Nombre del área manager
+          - name: _loaded_at
+            description: Momento de la carga en Bronze

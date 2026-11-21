@@ -1,0 +1,59 @@
+# =============================================================================
+# Source tpv · capa Bronze
+# =============================================================================
+# Ventas de los terminales de punto de venta (TPV):
+#   - tickets: TPV nuevo, JSON en una columna VARIANT. Llega en lotes cada
+#     30 minutos (Snowflake Task), así que es la única con freshness.
+#   - ventas_diarias_legacy: resumen diario del TPV antiguo (histórico cerrado).
+# dbt solo los declara para poder usar {{ source('tpv', '<tabla>') }}.
+# =============================================================================
+
+sources:
+  - name: tpv
+    description: Ventas de las tiendas de Lola Casademunt.
+    database: "{{ env_var('DBT_BRONZE_DB') }}"
+    schema: tpv
+
+    tables:
+      - name: tickets
+        description: >
+          Un ticket por fila, en JSON. Campos: id_ticket, tipo (VENTA o
+          DEVOLUCION), id_ticket_origen, tienda_id, fecha, hora, vendedor_id,
+          cliente_id, forma_pago, importe_total, canal y el array lineas
+          (linea, referencia, unidades, pvp, descuento_pct, precio_final).
+        config:
+          loaded_at_field: _loaded_at
+          freshness:
+            warn_after: {count: 24, period: hour}
+            error_after: {count: 48, period: hour}
+        columns:
+          - name: raw
+            description: El ticket completo en JSON (VARIANT).
+          - name: _source_file
+            description: Fichero del stage del que se cargó la fila.
+          - name: _source_row_number
+            description: Número de fila dentro de ese fichero.
+          - name: _loaded_at
+            description: Momento de la carga en Bronze. Lo usa el freshness.
+
+      - name: ventas_diarias_legacy
+        description: >
+          Resumen diario por tienda del TPV antiguo (2024-2025). Histórico
+          cerrado: no se vuelve a cargar, por eso no tiene freshness.
+        columns:
+          - name: tienda
+            description: Nombre de la tienda (no trae el código).
+          - name: fecha
+            description: Fecha de la venta, como texto.
+          - name: num_tickets
+            description: Número de tickets del día.
+          - name: unidades
+            description: Unidades vendidas.
+          - name: venta_bruta
+            description: Importe vendido, como texto.
+          - name: num_devoluciones
+            description: Número de devoluciones del día.
+          - name: importe_devoluciones
+            description: Importe devuelto, como texto.
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.

@@ -1,0 +1,143 @@
+# =============================================================================
+# Seeds: datos de referencia pequeños y estables, versionados en Git
+# =============================================================================
+# Un seed encaja con listas cortas que cambian poco y que no existen en ningún
+# sistema origen (códigos de país, mapeos de categorías...). No encaja con
+# datos transaccionales ni con volúmenes grandes: eso llega a Bronze por la
+# herramienta de ingesta.
+#
+# column_types: los códigos con ceros a la izquierda (01, 09, 0900) se fuerzan
+# a varchar. Si no, dbt los infiere como número y '09' pasa a ser 9.
+# =============================================================================
+
+seeds:
+  - name: familias_agregadas
+    description: >
+      Familias de producto. El código sale de los dígitos 5 y 6 de la
+      referencia del producto: substr(referencia, 5, 2).
+    config:
+      column_types:
+        codigo_familia: varchar(2)
+    columns:
+      - name: codigo_familia
+        description: Código de la familia (PK). Viene en la referencia del producto.
+        data_tests:
+          - unique
+          - not_null
+      - name: familia_agregada
+        description: Nombre de la familia en español.
+        data_tests:
+          - unique
+          - not_null
+      - name: categoria
+        description: Categoría a la que pertenece (Accesorio o Prenda).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Accesorio', 'Prenda']
+
+  - name: franjas_horarias
+    description: >
+      Franjas de 30 minutos del horario comercial (09:00 a 23:00). franja_id
+      coincide con el sufijo de las columnas f_0900...f_2230 del contador.
+    config:
+      column_types:
+        franja_id: varchar(4)
+        hora_inicio: time
+        hora_fin: time
+    columns:
+      - name: franja_id
+        description: Código HHMM de inicio de la franja (PK).
+        data_tests:
+          - unique
+          - not_null
+      - name: hora_inicio
+        description: Hora de inicio de la franja (incluida).
+        data_tests:
+          - not_null
+      - name: hora_fin
+        description: Hora de fin de la franja (excluida).
+      - name: periodo
+        description: Agrupación del día para el análisis de tráfico.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['MAÑANA', 'MEDIODÍA', 'TARDE', 'NOCHE']
+      - name: orden
+        description: Orden de la franja en el día (1 a 28). Sirve para ordenar en Power BI.
+
+  - name: comunidades_autonomas
+    description: >
+      Comunidades autónomas con su código oficial del INE, más las regiones de
+      las tiendas fuera de España (Andorra y los distritos de Portugal).
+    config:
+      column_types:
+        comunidad_id: varchar(5)
+    columns:
+      - name: comunidad_id
+        description: Código INE de la comunidad (01-19), o código ISO fuera de España (PK).
+        data_tests:
+          - unique
+          - not_null
+      - name: comunidad_autonoma
+        description: Nombre oficial de la comunidad.
+        data_tests:
+          - unique
+          - not_null
+      - name: pais
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['España', 'Andorra', 'Portugal']
+
+  - name: provincias
+    description: >
+      Provincias con su código INE (los dos primeros dígitos del código postal
+      en España) y la comunidad a la que pertenecen.
+    config:
+      column_types:
+        provincia_id: varchar(5)
+        comunidad_id: varchar(5)
+    columns:
+      - name: provincia_id
+        description: Código INE de la provincia (01-52), o código ISO fuera de España (PK).
+        data_tests:
+          - unique
+          - not_null
+      - name: provincia
+        description: Nombre de la provincia, escrito igual que en el origen de tiendas.
+        data_tests:
+          - unique
+          - not_null
+      - name: comunidad_id
+        description: FK a comunidades_autonomas.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('comunidades_autonomas')
+                field: comunidad_id
+
+  - name: formatos_tienda
+    description: >
+      Formato del punto de venta: combinación de tipo de tienda y sección.
+    columns:
+      - name: formato_id
+        description: Código del formato (PK).
+        data_tests:
+          - unique
+          - not_null
+      - name: formato
+        description: Nombre del formato.
+      - name: tipo_tienda
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['TIENDA', 'OUTLET', 'CORNER ECI']
+      - name: seccion
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Completa', 'Mujer', 'Accesorios']
