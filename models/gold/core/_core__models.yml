@@ -139,3 +139,90 @@ models:
           - accepted_values:
               arguments:
                 values: ['TPV_NUEVO', 'LEGACY']
+
+  - name: fct_trafico_franja
+    description: >
+      Trafico del contador por tienda, dia y franja de 30 min (grano tienda +
+      dia + franja). Historico y tiempo real unidos.
+    columns:
+      - name: trafico_franja_id
+        description: Clave, hash de tienda_id + fecha + franja_id.
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tienda')
+                field: tienda_id
+      - name: fecha
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha
+      - name: franja_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_franja')
+                field: franja_id
+      - name: entradas
+        description: Personas que entran en la tienda. Nulo si fallo el sensor.
+      - name: trafico_exterior
+        description: Personas que pasan por delante. Nulo si fallo el sensor.
+      - name: origen
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['HISTORICO', 'TIEMPO_REAL']
+
+  - name: fct_venta_linea
+    description: >
+      Venta por linea de ticket (grano linea). Incremental: cada ejecucion solo
+      procesa las lineas cargadas recientemente, con 3 dias de margen.
+    columns:
+      - name: linea_ticket_id
+        description: Clave de la linea (PK). Es la unique_key de la incremental.
+        data_tests: [unique, not_null]
+      - name: fecha
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tienda')
+                field: tienda_id
+      - name: referencia
+        description: Nula en la linea de la bolsa.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_producto')
+                field: referencia
+              config:
+                severity: warn
+      - name: franja_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_franja')
+                field: franja_id
+              config:
+                severity: warn
+      - name: tipo_linea
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['PRODUCTO', 'BOLSA']
+      - name: importe
+        description: Precio final de la linea. Negativo en devoluciones.
+        data_tests: [not_null]
