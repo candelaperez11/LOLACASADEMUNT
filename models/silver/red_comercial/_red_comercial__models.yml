@@ -1,0 +1,49 @@
+# =============================================================================
+# Modelos Silver de red comercial
+# =============================================================================
+# Entidades de la red comercial en 3FN: area manager, area, vendedor y tienda.
+# Cada modelo garantiza una fila por clave: unique + not_null en la PK y
+# relationships hacia sus padres.
+# =============================================================================
+
+models:
+  - name: slv_red_comercial__area_manager
+    description: Area managers, una fila por area manager.
+    columns:
+      - name: area_manager_id
+        description: Codigo del area manager.
+        data_tests: [unique, not_null]
+      - name: area_manager_nombre
+        data_tests: [not_null]
+
+  - name: slv_red_comercial__area
+    description: Areas comerciales, una fila por area, con el area manager que la lleva.
+    columns:
+      - name: area_id
+        description: Codigo del area.
+        data_tests: [unique, not_null]
+      - name: area_nombre
+        data_tests: [not_null]
+      - name: area_manager_id
+        description: Area manager que lleva el area.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_red_comercial__area_manager')
+                field: area_manager_id
+
+  - name: slv_red_comercial__vendedor
+    description: Vendedores, una fila por vendedor, con la tienda en la que trabajan.
+    columns:
+      - name: vendedor_id
+        description: Codigo del vendedor en el TPV. Sin mas datos personales.
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        description: Tienda en la que trabaja el vendedor.
+        data_tests: [not_null]
+        # Cuando exista slv_red_comercial__tienda, añadir aqui:
+        #   - relationships:
+        #       arguments:
+        #         to: ref('slv_red_comercial__tienda')
+        #         field: tienda_id

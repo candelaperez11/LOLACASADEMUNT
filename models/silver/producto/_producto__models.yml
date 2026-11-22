@@ -1,0 +1,41 @@
+# =============================================================================
+# Modelos Silver de producto
+# =============================================================================
+# Entidades del catalogo en 3FN: marca, temporada, capsula y producto.
+# Cada modelo garantiza una fila por clave: unique + not_null en la PK y
+# relationships hacia sus padres.
+# =============================================================================
+
+models:
+  - name: slv_producto__marca
+    description: Marcas, una fila por marca. Sale de la primera letra de la referencia.
+    columns:
+      - name: marca_id
+        description: L = Lola Casademunt, M = Maite.
+        data_tests: [unique, not_null]
+      - name: marca_nombre
+        description: Nulo si la letra de la referencia no es una marca conocida.
+        data_tests: [not_null]
+
+  - name: slv_producto__temporada
+    description: Temporadas, una fila por temporada, con sus fechas segun el calendario comercial.
+    columns:
+      - name: temporada_id
+        description: Codigo de la temporada (FW25-26, SS26...).
+        data_tests: [unique, not_null]
+      - name: tipo
+        description: FW = Otoño-Invierno, SS = Primavera-Verano.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['FW', 'SS']
+      - name: temporada_nombre
+        data_tests: [not_null]
+      - name: anio_inicio
+        data_tests: [not_null]
+      - name: fecha_inicio_venta
+        description: FW 1 de septiembre / SS 1 de marzo.
+        data_tests: [not_null]
+      - name: fecha_fin_venta
+        description: FW ultimo dia de febrero del año siguiente / SS 31 de agosto.
+        data_tests: [not_null]

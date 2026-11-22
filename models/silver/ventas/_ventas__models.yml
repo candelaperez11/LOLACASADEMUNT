@@ -1,0 +1,14 @@
+# =============================================================================
+# Modelos Silver de ventas
+# =============================================================================
+# Entidades de venta en 3FN: cliente, ticket, linea de ticket, venta del TPV
+# antiguo y objetivos.
+# =============================================================================
+
+models:
+  - name: slv_ventas__cliente
+    description: Clientes identificados en algun ticket, una fila por cliente.
+    columns:
+      - name: cliente_id
+        description: Codigo del cliente en el TPV. Sin mas datos personales.
+        data_tests: [unique, not_null]
