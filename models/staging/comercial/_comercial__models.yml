@@ -1,0 +1,86 @@
+# =============================================================================
+# Modelos de staging de comercial
+# =============================================================================
+# En este proyecto staging limpia y deduplica (Silver normaliza a 3FN), así que
+# aquí ya se garantiza la unicidad: unique + not_null en la clave de cada modelo.
+# =============================================================================
+
+models:
+  - name: stg_comercial__tiendas
+    description: Tiendas limpias, una fila por tienda (incluye las cerradas).
+    columns:
+      - name: tienda_id
+        description: Código de la tienda (PK).
+        data_tests: [unique, not_null]
+      - name: tienda_nombre
+        data_tests: [not_null]
+      - name: tipo_tienda
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['TIENDA', 'OUTLET', 'CORNER ECI']
+      - name: seccion
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Completa', 'Mujer', 'Accesorios']
+      - name: provincia
+        description: Nombre de la provincia, igual que en el seed provincias.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('provincias')
+                field: provincia
+      - name: comunidad_autonoma
+        description: Nombre oficial de la comunidad, igual que en el seed comunidades_autonomas.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('comunidades_autonomas')
+                field: comunidad_autonoma
+      - name: telefono
+        description: Teléfono en formato E.164 (+34...). Nulo si la tienda no tiene.
+      - name: m2
+        data_tests: [not_null]
+      - name: abre_domingo
+        data_tests: [not_null]
+      - name: fecha_apertura
+        data_tests: [not_null]
+      - name: fecha_cierre
+        description: Informada solo en las tiendas cerradas.
+
+  - name: stg_comercial__estructura_comercial
+    description: Área y área manager de cada tienda.
+    columns:
+      - name: tienda_id
+        description: Código de la tienda (PK).
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_comercial__tiendas')
+                field: tienda_id
+      - name: area_manager_nombre
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Bea', 'Sara', 'Yolanda', 'Lola', 'Manel']
+
+  - name: stg_comercial__objetivos_tienda_dia
+    description: Objetivo de venta neta por tienda y día (uno por día).
+    columns:
+      - name: objetivo_id
+        description: Clave tienda_id|fecha (PK).
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_comercial__tiendas')
+                field: tienda_id
+      - name: fecha
+        data_tests: [not_null]
+      - name: objetivo_venta_neta
+        data_tests: [not_null]
