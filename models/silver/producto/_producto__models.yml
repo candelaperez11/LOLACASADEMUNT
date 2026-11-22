@@ -39,3 +39,20 @@ models:
       - name: fecha_fin_venta
         description: FW ultimo dia de febrero del año siguiente / SS 31 de agosto.
         data_tests: [not_null]
+        
+  - name: slv_producto__capsula
+    description: Capsulas, una fila por capsula. El mismo codigo puede repetirse en distintas temporadas.
+    columns:
+      - name: capsula_id
+        description: Clave de la capsula, hash de temporada_id + capsula_codigo.
+        data_tests: [unique, not_null]
+      - name: capsula_codigo
+        description: Codigo de la capsula (L1, M2...). En las Resort sin codigo, el nombre en mayusculas.
+        data_tests: [not_null]
+      - name: temporada_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_producto__temporada')
+                field: temporada_id
