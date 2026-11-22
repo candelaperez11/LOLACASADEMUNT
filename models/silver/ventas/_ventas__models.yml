@@ -1,0 +1,146 @@
+# =============================================================================
+# Modelos Silver de ventas
+# =============================================================================
+# Entidades de venta en 3FN: cliente, objetivo diario, ticket, linea de ticket
+# y venta del TPV antiguo.
+# Cada modelo garantiza una fila por clave: unique + not_null en la PK y
+# relationships hacia sus padres.
+# =============================================================================
+
+models:
+  - name: slv_ventas__cliente
+    description: Clientes identificados en algun ticket, una fila por cliente.
+    columns:
+      - name: cliente_id
+        description: Codigo del cliente en el TPV. Sin mas datos personales.
+        data_tests: [unique, not_null]
+
+  - name: slv_ventas__objetivo_diario
+    description: Objetivo de venta neta por tienda y dia, una fila por tienda y dia.
+    columns:
+      - name: objetivo_id
+        description: Clave del objetivo, hash de tienda_id + fecha.
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_red_comercial__tienda')
+                field: tienda_id
+      - name: fecha
+        data_tests: [not_null]
+      - name: objetivo_venta_neta
+        description: Objetivo en euros.
+        data_tests: [not_null]
+
+  - name: slv_ventas__ticket
+    description: Tickets (ventas y devoluciones), una fila por ticket.
+    columns:
+      - name: ticket_id
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_red_comercial__tienda')
+                field: tienda_id
+      - name: vendedor_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('slv_red_comercial__vendedor')
+                field: vendedor_id
+      - name: cliente_id
+        description: Nulo si el cliente no se identifico.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('slv_ventas__cliente')
+                field: cliente_id
+      - name: ticket_origen_id
+        description: >
+          En las devoluciones, el ticket de venta que se devuelve. Puede apuntar
+          a una venta anterior al TPV nuevo, por eso solo avisa.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('slv_ventas__ticket')
+                field: ticket_id
+              config:
+                severity: warn
+      - name: tipo_ticket
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['VENTA', 'DEVOLUCION']
+      - name: fecha
+        data_tests: [not_null]
+      - name: franja_id
+        description: Franja de 30 minutos de la hora del ticket.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('franjas_horarias')
+                field: franja_id
+              config:
+                severity: warn
+      - name: importe_total
+        data_tests: [not_null]
+
+  - name: slv_ventas__linea_ticket
+    description: >
+      Lineas de ticket, una fila por producto de cada ticket. Resuelve la N:M
+      entre Ticket y Producto.
+    columns:
+      - name: linea_ticket_id
+        description: Clave de la linea, hash de ticket_id + num_linea.
+        data_tests: [unique, not_null]
+      - name: ticket_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_ventas__ticket')
+                field: ticket_id
+      - name: referencia
+        description: Producto vendido. Nula si la linea es la bolsa.
+        data_tests:
+          # LF2606018_275 no esta en el catalogo (ficha superpuesta en el PDF):
+          # avisa, pero no para la carga
+          - relationships:
+              arguments:
+                to: ref('slv_producto__producto')
+                field: referencia
+              config:
+                severity: warn
+      - name: tipo_linea
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['PRODUCTO', 'BOLSA']
+      - name: precio_final
+        data_tests: [not_null]
+      - name: es_precio_recalculado
+        description: TRUE si el precio final venia vacio y lo calculamos (unidades * pvp * (1 - descuento)).
+
+  - name: slv_ventas__venta_diaria_legacy
+    description: Venta diaria por tienda del TPV antiguo (año anterior), una fila por tienda y dia.
+    columns:
+      - name: venta_diaria_id
+        description: Clave, hash de tienda_id + fecha.
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        description: Sale de cruzar el nombre de la tienda con slv_red_comercial__tienda.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_red_comercial__tienda')
+                field: tienda_id
+      - name: fecha
+        data_tests: [not_null]
+      - name: venta_neta
+        description: venta_bruta - importe_devoluciones, misma definicion que en el TPV nuevo.
+        data_tests: [not_null]

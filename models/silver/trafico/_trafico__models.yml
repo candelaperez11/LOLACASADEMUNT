@@ -1,0 +1,36 @@
+# =============================================================================
+# Modelos Silver de trafico
+# =============================================================================
+
+models:
+  - name: slv_trafico__trafico_franja
+    description: Trafico por tienda, dia y franja de 30 min (historico + tiempo real).
+    columns:
+      - name: trafico_franja_id
+        description: Clave, hash de tienda_id + fecha + franja_id.
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_red_comercial__tienda')
+                field: tienda_id
+      - name: fecha
+        data_tests: [not_null]
+      - name: franja_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('franjas_horarias')
+                field: franja_id
+      - name: entradas
+        description: Personas que entran en la tienda. Nulo si fallo el sensor.
+      - name: trafico_exterior
+        description: Personas que pasan por delante del escaparate. Nulo si fallo el sensor.
+      - name: origen
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['HISTORICO', 'TIEMPO_REAL']

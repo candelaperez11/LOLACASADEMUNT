@@ -19,9 +19,9 @@ renamed as (
         , try_to_date(trim(fecha), 'DD/MM/YYYY')                         as fecha
         , num_tickets
         , unidades
-        , try_to_number(replace(trim(venta_bruta), ',', '.'), 12, 2)     as venta_bruta
+        , {{ limpiar_importe('venta_bruta') }}                           as venta_bruta
         , num_devoluciones
-        , try_to_number(replace(trim(importe_devoluciones), ',', '.'), 12, 2) as importe_devoluciones
+        , {{ limpiar_importe('importe_devoluciones') }}                  as importe_devoluciones
         , _loaded_at                                                     as date_load
     from source
 ),
