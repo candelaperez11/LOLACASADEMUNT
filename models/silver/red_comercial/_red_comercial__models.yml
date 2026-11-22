@@ -41,9 +41,50 @@ models:
         data_tests: [unique, not_null]
       - name: tienda_id
         description: Tienda en la que trabaja el vendedor.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_red_comercial__tienda')
+                field: tienda_id
+
+  - name: slv_red_comercial__tienda
+    description: Tiendas, una fila por tienda (incluidas las cerradas, siguen en el historico).
+    columns:
+      - name: tienda_id
+        description: Codigo de la tienda.
+        data_tests: [unique, not_null]
+      - name: provincia_id
+        description: Sale de cruzar el nombre de la provincia con el seed provincias.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('provincias')
+                field: provincia_id
+      - name: area_id
+        description: Sale de la estructura comercial.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_red_comercial__area')
+                field: area_id
+      - name: formato_id
+        description: Sale de cruzar tipo_tienda + seccion con el seed formatos_tienda.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('formatos_tienda')
+                field: formato_id
+      - name: tienda_nombre
         data_tests: [not_null]
-        # Cuando exista slv_red_comercial__tienda, añadir aqui:
-        #   - relationships:
-        #       arguments:
-        #         to: ref('slv_red_comercial__tienda')
-        #         field: tienda_id
+      - name: abre_domingo
+        data_tests: [not_null]
+      - name: tiene_contador
+        data_tests: [not_null]
+      - name: fecha_apertura
+        data_tests: [not_null]
+      - name: fecha_cierre
+        description: Informada solo en las tiendas cerradas.

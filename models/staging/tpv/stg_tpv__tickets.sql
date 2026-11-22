@@ -38,7 +38,7 @@ renamed as (
                                                                                        then 'TARJETA_REGALO'
               else upper(trim(raw:forma_pago::varchar))
           end                                                            as forma_pago
-        , try_to_number(replace(raw:importe_total::varchar, ',', '.'), 12, 2) as importe_total
+        , {{ limpiar_importe('raw:importe_total::varchar') }}            as importe_total
         , coalesce(upper(trim(raw:canal::varchar)), 'TIENDA')            as canal
         , raw:lineas                                                     as lineas
         , array_size(raw:lineas)                                         as num_lineas

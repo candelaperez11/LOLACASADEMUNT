@@ -39,7 +39,7 @@ models:
       - name: fecha_fin_venta
         description: FW ultimo dia de febrero del año siguiente / SS 31 de agosto.
         data_tests: [not_null]
-        
+
   - name: slv_producto__capsula
     description: Capsulas, una fila por capsula. El mismo codigo puede repetirse en distintas temporadas.
     columns:
@@ -56,3 +56,51 @@ models:
               arguments:
                 to: ref('slv_producto__temporada')
                 field: temporada_id
+
+  - name: slv_producto__producto
+    description: Productos, una fila por referencia, con las reglas de negocio aplicadas.
+    columns:
+      - name: referencia
+        description: Codigo del producto, con guion bajo y en mayusculas.
+        data_tests: [unique, not_null]
+      - name: marca_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_producto__marca')
+                field: marca_id
+      - name: temporada_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('slv_producto__temporada')
+                field: temporada_id
+      - name: codigo_familia
+        description: Digitos 5-6 de la referencia.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('familias_agregadas')
+                field: codigo_familia
+      - name: capsula_id
+        description: Nulo si el producto no tiene capsula o es un accesorio.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('slv_producto__capsula')
+                field: capsula_id
+      - name: producto_nombre
+        data_tests: [not_null]
+      - name: es_45_aniversario
+        description: TRUE si el nombre original llevaba el sufijo 45a.
+        data_tests: [not_null]
+      - name: pvp_es
+        description: Precio en España. Si no venia, mediana del precio de su familia.
+        data_tests: [not_null]
+      - name: es_precio_imputado
+        description: TRUE si el precio es la mediana de la familia (no venia en el lookbook).
+      - name: fecha_entrada
+        description: Fecha de entrada en tienda. Nula en FW25-26 (el lookbook no la trae).

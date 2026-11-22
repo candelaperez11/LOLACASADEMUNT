@@ -15,9 +15,9 @@ renamed as (
         upper(trim(tienda_id))                                           as tienda_id
         , try_to_date(trim(fecha), 'YYYYMMDD')                           as fecha
         , case
-              when upper(trim(objetivo_venta_neta)) like '%K'
-                  then try_to_number(replace(replace(upper(trim(objetivo_venta_neta)), 'K', ''), ',', '.'), 12, 2) * 1000
-              else try_to_number(replace(trim(objetivo_venta_neta), ',', '.'), 12, 2)
+            when upper(trim(objetivo_venta_neta)) like '%K'
+                then {{ limpiar_importe("replace(upper(objetivo_venta_neta), 'K', '')") }} * 1000
+            else {{ limpiar_importe('objetivo_venta_neta') }}
           end                                                            as objetivo_venta_neta  --Quitar K
         , _loaded_at                                                     as date_load
     from source

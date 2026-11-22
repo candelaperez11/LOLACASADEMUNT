@@ -36,11 +36,17 @@ renamed as (
         , trim(subfamilia)                                                 as subfamilia
         , coalesce(try_to_date(trim(fecha_entrada), 'YYYY-MM-DD'),
                    try_to_date(trim(fecha_entrada), 'DD/MM/YYYY'))       as fecha_entrada   --texto a fecha
-        , trim(rango_tallas)                                             as rango_tallas
-        , try_to_number(replace(replace(replace(trim(pvp_es),  '€', ''), ' ', ''), ',', '.'), 10, 2) as pvp_es 
-        , try_to_number(replace(replace(replace(trim(pvp_and), '€', ''), ' ', ''), ',', '.'), 10, 2) as pvp_and
+        , trim(rango_tallas)                                             as rango_tallas 
+        , {{ limpiar_importe('pvp_es') }}                                as pvp_es
+        , {{ limpiar_importe('pvp_and') }}                               as pvp_and
         , trim(color)                                                    as color
-        , trim(descripcion)                                              as descripcion
+        , case
+            when descripcion like 'PVP%AND:%'
+                then trim(substr(descripcion, position(' ', descripcion, position('AND: ', descripcion) + 5) + 1))
+            when descripcion like 'PVP%ESP:%'
+                then trim(substr(descripcion, position(' ', descripcion, position('ESP: ', descripcion) + 5) + 1))
+            else trim(descripcion)
+          end                                                            as descripcion  --El archivo viene sucio, en la descripcion aparece PVP | ESP: ... AND: ... delante del texto
         , trim(composicion)                                              as composicion
         , trim(catalogo)                                                 as catalogo
         , _loaded_at                                                     as date_load
