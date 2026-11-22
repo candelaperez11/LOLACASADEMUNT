@@ -1,0 +1,41 @@
+# =============================================================================
+# Modelos de staging de contador
+# =============================================================================
+# Los dos modelos tienen las mismas columnas: en Silver se unen con UNION ALL.
+# =============================================================================
+
+models:
+  - name: stg_contador__trafico_franjas
+    description: Histórico del contador en formato largo (una fila por tienda, día, kpi y franja).
+    columns: &columnas_trafico
+      - name: trafico_id
+        description: Clave tienda|fecha|kpi|franja (PK).
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_comercial__tiendas')
+                field: tienda_id
+      - name: fecha
+        data_tests: [not_null]
+      - name: kpi
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['ENTRADAS', 'TRAFICO_EXTERIOR']
+      - name: franja_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('franjas_horarias')
+                field: franja_id
+      - name: personas
+        description: Nulo si el sensor falló (ver es_incidencia).
+      - name: es_incidencia
+        description: TRUE si el valor original era "Sin datos" o negativo.
+
+  - name: stg_contador__trafico_tiempo_real
+    description: Contador en vivo, lotes de 30 minutos, en formato largo.
+    columns: *columnas_trafico

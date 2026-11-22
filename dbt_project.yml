@@ -2,7 +2,7 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'my_new_project'
+name: 'LOLACASADEMUNT'
 version: '1.0.0'
 config-version: 2
 
@@ -36,7 +36,53 @@ clean-targets:         # directories to be removed by `dbt clean`
 # using the `{{ config(...) }}` macro.
 
 models:
-  my_new_project:
-    # Applies to all files under models/example/
-    example:
+  LOLACASADEMUNT:
+    # Las tablas transient de Snowflake no tienen Fail-safe y su Time Travel es
+    # de 1 día como máximo. Para tablas de consumo preferimos tablas normales.
+    +transient: false
+
+    # --- Staging: renombrado, casteo, limpieza y deduplicación, 1:1 con Bronze.
+    #     Vistas: no ocupan almacenamiento y siempre reflejan Bronze.
+    staging:
+      +materialized: view
+      +database: "{{ env_var('DBT_SILVER_DB') }}"
+      +tags: ['staging']
+      comercial:
+        +schema: comercial
+      catalogo:
+        +schema: catalogo
+      tpv:
+        +schema: tpv
+      contador:
+        +schema: contador
+
+    # --- Silver: modelo normalizado en 3FN (una tabla por entidad).
+    #     Tablas: se consultan muchas veces desde Gold.
+    silver:
       +materialized: table
+      +database: "{{ env_var('DBT_SILVER_DB') }}"
+      +schema: normalizado
+      +tags: ['silver']
+
+    # --- Gold: modelo en estrella para Power BI. La capa la marca la database;
+    #     el tipo de tabla, el prefijo del modelo (dim_, fct_, int_).
+    gold:
+      +materialized: table
+      +database: "{{ env_var('DBT_GOLD_DB') }}"
+      +tags: ['gold']
+      intermediate:
+        +materialized: view
+        +schema: intermediate
+      core:
+        +schema: core
+
+# =============================================================================
+# Seeds
+# =============================================================================
+# Van a Silver y no a Bronze: Bronze solo la escribe la herramienta de ingesta.
+# Los tipos de columna (varchar para los códigos con ceros) están en _seeds.yml.
+seeds:
+  LOLACASADEMUNT:
+    +database: "{{ env_var('DBT_SILVER_DB') }}"
+    +schema: seeds
+    +tags: ['seeds']

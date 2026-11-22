@@ -1,0 +1,92 @@
+# =============================================================================
+# Source comercial · capa Bronze
+# =============================================================================
+# Datos de la red comercial: tiendas, estructura de áreas y objetivos.
+# Se cargan en Bronze con COPY INTO desde el stage carga_bronze; dbt solo los
+# declara para poder usar {{ source('comercial', '<tabla>') }}.
+# Sin freshness: son maestros que solo se recargan cuando algo cambia, así que
+# un aviso por antigüedad sería ruido.
+# =============================================================================
+
+sources:
+  - name: comercial
+    description: Datos de la red comercial de Lola Casademunt.
+    database: "{{ env_var('DBT_BRONZE_DB') }}"
+    schema: comercial
+
+    tables:
+      - name: tiendas
+        description: Puntos de venta (tiendas propias, outlets y corners de El Corte Inglés).
+        columns:
+          - name: tienda_id
+            description: Código de la tienda.
+          - name: nombre
+            description: Nombre oficial de la tienda (como en BI2GO).
+          - name: tipo_tienda
+            description: TIENDA, OUTLET o CORNER ECI.
+          - name: es_franquicia
+            description: True/False, como texto.
+          - name: ubicacion
+            description: Calle, Centro comercial, Aeropuerto, Outlet o Grandes almacenes.
+          - name: seccion
+            description: Completa, Mujer o Accesorios.
+          - name: direccion
+            description: Dirección postal.
+          - name: codigo_postal
+            description: Código postal.
+          - name: ciudad
+            description: Ciudad.
+          - name: provincia
+            description: Provincia.
+          - name: comunidad_autonoma
+            description: Comunidad autónoma (escrita de varias formas).
+          - name: pais
+            description: País.
+          - name: telefono
+            description: Teléfono, en formatos distintos.
+          - name: m2
+            description: Superficie, como texto (a veces "95 m2").
+          - name: num_muebles
+            description: Número de muebles de exposición.
+          - name: hora_apertura
+            description: Hora de apertura.
+          - name: hora_cierre
+            description: Hora de cierre (a veces "21h").
+          - name: abre_domingo
+            description: Si abre en domingo (Sí, SI, 1, true, No, 0...).
+          - name: tiene_contador
+            description: Si tiene contador de personas (True/False).
+          - name: fecha_apertura
+            description: Fecha de apertura (dd/mm/aaaa).
+          - name: fecha_cierre
+            description: Fecha de cierre, solo en las tiendas cerradas.
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.
+
+      - name: estructura_comercial
+        description: Asignación de cada tienda a su área y su área manager.
+        columns:
+          - name: tienda_id
+            description: Código de la tienda.
+          - name: area_id
+            description: Código del área comercial.
+          - name: area
+            description: Nombre del área.
+          - name: area_manager_id
+            description: Código del área manager.
+          - name: area_manager
+            description: Nombre del área manager (viene en mayúsculas a veces).
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.
+
+      - name: objetivos_tienda_dia
+        description: Objetivo de venta neta por tienda y día.
+        columns:
+          - name: tienda_id
+            description: Código de la tienda.
+          - name: fecha
+            description: Día, como número aaaammdd.
+          - name: objetivo_venta_neta
+            description: Objetivo en euros (coma decimal, a veces en miles con "K").
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.

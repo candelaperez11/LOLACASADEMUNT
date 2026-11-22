@@ -1,0 +1,79 @@
+# =============================================================================
+# Modelos de staging de tpv
+# =============================================================================
+
+models:
+  - name: stg_tpv__tickets
+    description: >
+      Cabecera de los tickets del TPV nuevo, sin tickets de prueba ni
+      reenvíos duplicados. Incluye ventas y devoluciones.
+    columns:
+      - name: ticket_id
+        description: Identificador del ticket (PK).
+        data_tests: [unique, not_null]
+      - name: tipo_ticket
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['VENTA', 'DEVOLUCION']
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_comercial__tiendas')
+                field: tienda_id
+      - name: fecha
+        data_tests: [not_null]
+      - name: franja_id
+        description: Franja de 30 minutos de la hora del ticket.
+      - name: forma_pago
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['TARJETA', 'EFECTIVO', 'BIZUM', 'TARJETA_REGALO']
+      - name: importe_total
+        data_tests: [not_null]
+      - name: canal
+        description: Canal de venta. Antes de julio 2026 no venía y se asume TIENDA.
+
+  - name: stg_tpv__lineas_ticket
+    description: Líneas de los tickets, una fila por línea.
+    columns:
+      - name: linea_ticket_id
+        description: Clave ticket_id-num_linea (PK).
+        data_tests: [unique, not_null]
+      - name: ticket_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_tpv__tickets')
+                field: ticket_id
+      - name: referencia
+        description: Referencia del producto. BOLSA_PAPEL no es producto.
+        data_tests:
+          - not_null
+          # Falta LF2606018_275 en el catálogo (ficha superpuesta en el PDF):
+          # se avisa, pero no se para la carga.
+          - relationships:
+              arguments:
+                to: ref('stg_catalogo__productos')
+                field: referencia
+              config:
+                where: "es_producto"
+                severity: warn
+      - name: precio_final
+        data_tests: [not_null]
+
+  - name: stg_tpv__ventas_diarias_legacy
+    description: Venta diaria por tienda del TPV antiguo (año anterior).
+    columns:
+      - name: venta_diaria_id
+        description: Clave tienda|fecha (PK).
+        data_tests: [unique, not_null]
+      - name: fecha
+        data_tests: [not_null]
+      - name: venta_neta
+        description: venta_bruta - importe_devoluciones.
+        data_tests: [not_null]
