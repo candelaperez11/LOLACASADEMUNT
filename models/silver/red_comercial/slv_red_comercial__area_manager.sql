@@ -13,7 +13,6 @@ final as (
     select
         area_manager_id
         , area_manager_nombre
-        , date_load
     from estructura
     qualify row_number() over (partition by area_manager_id order by date_load desc) = 1
 )

@@ -49,7 +49,6 @@ final as (
         , t.tiene_contador
         , t.fecha_apertura
         , t.fecha_cierre
-        , t.date_load
     from tiendas t
     left join provincias p
         on t.provincia = p.provincia

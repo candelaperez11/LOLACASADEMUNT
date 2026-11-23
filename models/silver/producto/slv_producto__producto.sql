@@ -59,7 +59,6 @@ final as (
         , pvp_es is null                                                as es_precio_imputado  --para reconocer donde hemos añadido mediana y donde no
         , fecha_entrada
         , imagen_data_uri                                               as imagen
-        , date_load
     from juntarlas
     qualify row_number() over (partition by referencia order by date_load desc) = 1
 )

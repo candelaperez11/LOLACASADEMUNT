@@ -33,19 +33,16 @@ final as (
           p.referencia
         , p.producto_nombre
         , p.producto_nombre_en
-        , p.marca_id
-        , m.marca_nombre
-        , p.temporada_id
-        , t.temporada_nombre
-        , coalesce(c.capsula_codigo, 'Sin cápsula')              as capsula_codigo --no se aun
-        , coalesce(c.capsula_nombre, 'Sin cápsula')              as capsula_nombre
-        , f.familia_agregada                                     as familia
+        , p.marca_id 
+        , m.marca_nombre  --para lector externo entenderlo mejor
+        , p.temporada_id 
+        , coalesce(c.capsula_nombre, c.capsula_codigo, 'Sin cápsula')         as capsula
+        , f.familia_agregada                                                  as familia
         , f.categoria
         , p.es_45_aniversario
         , p.pvp_es
         , p.pvp_and
         , p.es_precio_imputado
-        , p.fecha_entrada
         , p.imagen
     from productos p
     left join marcas m
