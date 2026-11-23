@@ -37,15 +37,7 @@ renamed as (
               else trim(comunidad_autonoma)
           end                                                       as comunidad_autonoma
         , trim(pais)                                                as pais
-        , case
-              when nullif(regexp_replace(telefono, '[^0-9]', ''), '') is null then null
-              when regexp_replace(telefono, '[^0-9]', '') like '00%'
-                  then '+' || substr(regexp_replace(telefono, '[^0-9]', ''), 3)
-              when length(regexp_replace(telefono, '[^0-9]', '')) = 9
-               and left(regexp_replace(telefono, '[^0-9]', ''), 1) in ('6', '7', '8', '9')
-                  then '+34' || regexp_replace(telefono, '[^0-9]', '')
-              else '+' || regexp_replace(telefono, '[^0-9]', '')
-          end                                                       as telefono --nos quedamos solo con los dígitos y añadimos el prefijo.
+        , {{ normalizar_telefono('telefono') }}                     as telefono  --solo digitos y prefijo +34 (macro)
         , try_to_number(trim(replace(lower(m2), 'm2', '')))         as m2
         , num_muebles                                               
         , try_to_time(replace(trim(hora_apertura), 'h', ':00'))      as hora_apertura

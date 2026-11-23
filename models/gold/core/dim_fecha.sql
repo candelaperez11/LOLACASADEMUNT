@@ -1,4 +1,4 @@
---La semana empieza en lunes = 1, martes = 2 , miercoles = 3......
+--Pre hook, la semana empieza en lunes = 1, martes = 2 , miercoles = 3......
 {{
     config(
         pre_hook="alter session set week_start = 1", 
@@ -6,17 +6,14 @@
     )
 }}
 
--- =============================================================================
+-- =====================================================================================================================
 -- dim_fecha
--- =============================================================================
+-- =====================================================================================================================
 -- Una fila por dia, del 01/11/2024 (inicio del TPV antiguo) al 31/12/2026
--- El pre_hook fija WEEK_START = 1 en la sesion: asi dayofweek() devuelve
--- 1 = lunes ... 7 = domingo, como en España, sea cual sea la configuracion
--- de la cuenta. El post_hook lo deshace para no afectar a otros modelos.
+-- El post_hook lo deshace para no afectar a otros modelos.
 -- fecha_aa = mismo dia de la semana del año anterior (fecha - 364 dias),
--- que es como compara BI2GO
--- Semana ISO con su propio año (el 31/12 puede ser la semana 1 del año siguiente)
--- =============================================================================
+-- Semana ISO con su propio año (el 31/12 puede ser la semana 1 del año siguiente) para la comparacion vs n-1 de Power bi
+-- ======================================================================================================================
 
 with spine as (
     {{ dbt_utils.date_spine(

@@ -90,3 +90,45 @@ sources:
             description: Objetivo en euros (coma decimal, a veces en miles con "K").
           - name: _loaded_at
             description: Momento de la carga en Bronze.
+
+      - name: clientes
+        description: Clientes del CRM. Contiene datos personales.
+        columns:
+          - name: cliente_id
+            description: Codigo del cliente, el mismo que en los tickets.
+          - name: nombre
+            description: Nombre (a veces con espacios al final).
+          - name: apellidos
+            description: Apellidos.
+          - name: email
+            description: Email (a veces en mayusculas o vacio).
+          - name: telefono
+            description: Telefono en formatos distintos.
+          - name: fecha_nacimiento
+            description: Fecha de nacimiento, en dd/mm/aaaa o aaaa-mm-dd.
+          - name: fecha_alta
+            description: Fecha de alta en el CRM.
+          - name: acepta_comunicaciones
+            description: Consentimiento para marketing (SI, Si, 1, NO, 0, vacio...).
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.
+
+      - name: vendedores
+        description: Vendedores de las tiendas (maestro de personal). Contiene datos personales.
+        columns:
+          - name: vendedor_id
+            description: Codigo del vendedor, el mismo que en los tickets.
+          - name: tienda_id
+            description: Tienda en la que trabaja.
+          - name: nombre
+            description: Nombre (a veces en mayusculas).
+          - name: apellidos
+            description: Apellidos.
+          - name: fecha_alta
+            description: Fecha de alta en la empresa.
+          - name: puesto
+            description: Encargada o Dependienta (a veces en mayusculas).
+          - name: horas_semanales
+            description: Jornada de contrato en horas por semana.
+          - name: _loaded_at
+            description: Momento de la carga en Bronze.
