@@ -9,11 +9,16 @@
 
 models:
   - name: slv_ventas__cliente
-    description: Clientes identificados en algun ticket, una fila por cliente.
+    description: Clientes del CRM, una fila por cliente. Contiene datos personales.
     columns:
       - name: cliente_id
-        description: Codigo del cliente en el TPV. Sin mas datos personales.
+        description: Codigo del cliente, el mismo que en los tickets.
         data_tests: [unique, not_null]
+      - name: fecha_nacimiento
+        description: Nula si no la dio. Sirve para calcular el rango de edad en Gold.
+      - name: acepta_comunicaciones
+        description: TRUE solo con consentimiento explicito (RGPD).
+        data_tests: [not_null]
 
   - name: slv_ventas__objetivo_diario
     description: Objetivo de venta neta por tienda y dia, una fila por tienda y dia.

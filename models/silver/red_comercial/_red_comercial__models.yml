@@ -34,19 +34,28 @@ models:
                 field: area_manager_id
 
   - name: slv_red_comercial__vendedor
-    description: Vendedores, una fila por vendedor, con la tienda en la que trabajan.
+    description: Vendedores del maestro de personal, una fila por vendedor.
     columns:
       - name: vendedor_id
-        description: Codigo del vendedor en el TPV. Sin mas datos personales.
+        description: Codigo del vendedor, el mismo que en los tickets.
         data_tests: [unique, not_null]
       - name: tienda_id
-        description: Tienda en la que trabaja el vendedor.
+        description: Tienda en la que trabaja, segun el maestro de personal.
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('slv_red_comercial__tienda')
                 field: tienda_id
+      - name: puesto
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Encargada', 'Dependienta']
+      - name: horas_semanales
+        description: Jornada de contrato en horas por semana.
+        data_tests: [not_null]
+
 
   - name: slv_red_comercial__tienda
     description: Tiendas, una fila por tienda (incluidas las cerradas, siguen en el historico).

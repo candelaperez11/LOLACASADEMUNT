@@ -5,16 +5,21 @@
 --cliente_id
 --==============================================================================================================
 
-with tickets as (
-    select * from {{ ref('stg_tpv__tickets') }}
+with clientes as (
+    select * from {{ ref('stg_comercial__clientes') }}
 ),
 
 final as (
     select
-        cliente_id
-        , date_load
-    from tickets
-    where cliente_id is not null
+          cliente_id
+        , nombre
+        , apellidos
+        , email
+        , telefono
+        , fecha_nacimiento
+        , fecha_alta
+        , acepta_comunicaciones
+    from clientes
     qualify row_number() over (partition by cliente_id order by date_load desc) = 1
 )
 
