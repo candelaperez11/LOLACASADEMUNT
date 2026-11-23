@@ -27,7 +27,7 @@ legacy as (
     select * from {{ ref('slv_ventas__venta_diaria_legacy') }}
 ),
 
--- 1. TPV nuevo: importes y tickets por tienda y dia
+-- TPV nuevo: importes y tickets por tienda y dia
 tpv_nuevo_importes as (
     select
           tienda_id
@@ -40,7 +40,7 @@ tpv_nuevo_importes as (
     group by tienda_id, fecha
 ),
 
--- 2. TPV nuevo: unidades de producto vendidas por tienda y dia
+-- TPV nuevo: unidades de producto vendidas por tienda y dia
 tpv_nuevo_unidades as (
     select
           t.tienda_id
@@ -101,7 +101,6 @@ final as (
         , fecha
         , num_tickets
         , unidades
-        , venta_bruta
         , num_devoluciones
         , importe_devoluciones
         , venta_neta

@@ -13,11 +13,9 @@ with objetivos as (
 
 final as (
     select
-          objetivo_id
-        -- Claves hacia las dimensiones
+        objetivo_id
         , tienda_id
         , fecha
-        -- Medida
         , objetivo_venta_neta
     from objetivos
 )

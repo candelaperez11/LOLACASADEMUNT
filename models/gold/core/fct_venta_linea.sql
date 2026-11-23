@@ -44,21 +44,17 @@ final as (
     select
           l.linea_ticket_id
         , l.ticket_id
-        -- Claves hacia las dimensiones
         , t.fecha
         , t.tienda_id
         , l.referencia
         , t.franja_id
         , t.vendedor_id
         , t.cliente_id
-        -- Para filtrar
         , t.tipo_ticket
         , l.tipo_linea
         -- Medidas
         , l.unidades
         , l.precio_final                                     as importe
-        , l.pvp
-        , l.descuento_pct
         -- Para la incremental
         , l.date_load
     from lineas l

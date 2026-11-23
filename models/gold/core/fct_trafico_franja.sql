@@ -16,15 +16,12 @@ with trafico as (
 
 final as (
     select
-          trafico_franja_id
-        -- Claves hacia las dimensiones
+        trafico_franja_id
         , tienda_id
         , fecha
         , franja_id
-        -- Medidas
         , entradas
         , trafico_exterior
-        -- Para saber si el dato es fiable y de donde viene
         , hay_incidencia
         , origen
     from trafico
