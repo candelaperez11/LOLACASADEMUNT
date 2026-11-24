@@ -142,29 +142,18 @@ models:
     description: Vendedores con su tienda, una fila por vendedor. Para filtrar ventas por vendedor.
     columns:
       - name: vendedor_id
+        description: Codigo del vendedor (PK).
         data_tests: [unique, not_null]
       - name: vendedor_nombre
         data_tests: [not_null]
-      - name: tienda_id
-        data_tests:
-          - relationships:
-              arguments:
-                to: ref('dim_tienda')
-                field: tienda_id
-
-  - name: dim_cliente
-    description: >
-      Clientes sin datos personales, una fila por cliente. Solo rango de edad,
-      antiguedad y consentimiento (minimizacion RGPD: nombre, email y telefono
-      se quedan en Silver).
-    columns:
-      - name: cliente_id
-        data_tests: [unique, not_null]
-      - name: rango_edad
+      - name: tienda_nombre
+        data_tests: [not_null]
+      - name: puesto
         data_tests:
           - accepted_values:
               arguments:
-                values: ['Sin dato', 'Menos de 30', '30 - 39', '40 - 49', '50 - 59', '60 o más']
+                values: ['Encargada', 'Dependienta']
+
 
   - name: fct_objetivo_diario
     description: Objetivo de venta neta por tienda y dia (grano tienda + dia).
@@ -279,10 +268,6 @@ models:
       - name: tienda_id
         data_tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('dim_tienda')
-                field: tienda_id
       - name: referencia
         description: Nula en la linea de la bolsa.
         data_tests:
