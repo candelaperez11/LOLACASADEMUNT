@@ -1,3 +1,11 @@
+
+{{
+    config(
+        materialized = 'incremental',
+        unique_key = 'ticket_id',
+        on_schema_change = 'append_new_columns'
+    )
+}}
 -- =============================================================================
 -- slv_ventas__ticket
 -- =============================================================================
@@ -10,6 +18,10 @@
 
 with tickets as (
     select * from {{ ref('stg_tpv__tickets') }}
+
+    {% if is_incremental() %}
+    where date_load >= (select dateadd('day', -3, max(date_load)) from {{ this }})
+    {% endif %}
 ),
 
 final as (
@@ -26,7 +38,7 @@ final as (
         , forma_pago
         , canal
         , importe_total
-        , date_load
+        , date_load           --lo necesita incremental
     from tickets
     qualify row_number() over (partition by ticket_id order by date_load desc) = 1
 )
