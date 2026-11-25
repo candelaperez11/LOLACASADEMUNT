@@ -64,6 +64,8 @@ models:
               arguments:
                 to: ref('slv_ventas__cliente')
                 field: cliente_id
+                config:
+                  severity: warn
       - name: ticket_origen_id
         description: >
           En las devoluciones, el ticket de venta que se devuelve. Puede apuntar
