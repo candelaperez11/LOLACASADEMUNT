@@ -26,8 +26,8 @@ juntarlas as (
           p.*
         , f.categoria
         , i.imagen_data_uri
-        , median(p.pvp_es)  over (partition by p.codigo_familia)        as mediana_pvp_es_familia  --FW25-26 no tiene precio, en vez de null relleno con mediana
-        , median(p.pvp_and) over (partition by p.codigo_familia)        as mediana_pvp_and_familia
+        ,round(median(p.pvp_es)  over (partition by p.codigo_familia), 2)    as mediana_pvp_es_familia  --FW25-26 no tiene precio, en vez de null relleno con mediana
+        ,round(median(p.pvp_and) over (partition by p.codigo_familia), 2)    as mediana_pvp_and_familia
     from productos p
     left join familias f
         on p.codigo_familia = f.codigo_familia
@@ -59,7 +59,6 @@ final as (
         , pvp_es is null                                                as es_precio_imputado  --para reconocer donde hemos añadido mediana y donde no
         , fecha_entrada
         , imagen_data_uri                                               as imagen
-        , date_load
     from juntarlas
     qualify row_number() over (partition by referencia order by date_load desc) = 1
 )

@@ -38,7 +38,6 @@ final as (
               when tipo = 'FW' then last_day(to_date((anio_inicio + 1) || '-02-01'))
               when tipo = 'SS' then to_date(anio_inicio || '-08-31')
           end                                                      as fecha_fin_venta 
-        , date_load
     from temporadas
 )
 

@@ -17,7 +17,6 @@ final as (
         area_id
         , area_nombre
         , area_manager_id
-        , date_load
     from estructura
     qualify row_number() over (partition by area_id order by date_load desc) = 1
 )

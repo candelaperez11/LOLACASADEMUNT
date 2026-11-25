@@ -6,17 +6,20 @@
 -- 1:N con Ticket (Un vendedor hace muchos tickets diferentes, cada ticket lo hace un solo vendedor)
 -- ===================================================================================
 
-with tickets as (
-    select * from {{ ref('stg_tpv__tickets') }}
+with vendedores as (
+    select * from {{ ref('stg_comercial__vendedores') }}
 ),
 
 final as (
     select
-        vendedor_id
+          vendedor_id
         , tienda_id
-        , date_load
-    from tickets
-    where vendedor_id is not null
+        , nombre
+        , apellidos
+        , fecha_alta
+        , puesto
+        , horas_semanales
+    from vendedores
     qualify row_number() over (partition by vendedor_id order by date_load desc) = 1
 )
 

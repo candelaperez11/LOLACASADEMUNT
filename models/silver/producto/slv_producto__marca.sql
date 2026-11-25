@@ -18,7 +18,6 @@ final as (
             when marca_id = 'M' 
                 then 'Maite Casademunt' 
             end                        as marca_nombre 
-        , date_load
     from productos
     qualify row_number() over (partition by marca_id order by date_load desc) = 1
 )

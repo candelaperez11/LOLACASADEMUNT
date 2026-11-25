@@ -70,9 +70,8 @@ models:
       +materialized: table
       +database: "{{ env_var('DBT_GOLD_DB') }}"
       +tags: ['gold']
-      intermediate:
-        +materialized: view
-        +schema: intermediate
+      +grants:
+        select: ['REPORTING_ROLE']  
       core:
         +schema: core
 

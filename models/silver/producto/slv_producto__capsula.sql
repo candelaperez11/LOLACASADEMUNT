@@ -15,7 +15,6 @@ capsulas as (
         ,capsula_nombre
         ,capsula_codigo
         ,temporada_id
-        , date_load
     from productos
     where capsula_id is not null
     qualify row_number() over (partition by capsula_id order by date_load desc) = 1

@@ -1,3 +1,12 @@
+
+{{
+    config(
+        materialized = 'incremental',
+        unique_key = 'linea_ticket_id',
+        on_schema_change = 'append_new_columns'
+    )
+}}
+
 -- =============================================================================
 -- slv_ventas__linea_ticket
 -- =============================================================================
@@ -13,6 +22,10 @@
 
 with lineas as (
     select * from {{ ref('stg_tpv__lineas_ticket') }}
+
+    {% if is_incremental() %}
+    where date_load >= (select dateadd('day', -3, max(date_load)) from {{ this }})
+    {% endif %}
 ),
 
 final as (

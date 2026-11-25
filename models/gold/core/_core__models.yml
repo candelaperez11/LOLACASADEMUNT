@@ -1,0 +1,295 @@
+# =============================================================================
+# Modelos Gold core: modelo en estrella para Power BI
+# =============================================================================
+# Dimensiones (dim_): el contexto para filtrar y agrupar
+# Hechos (fct_): lo que se mide, numeros que se suman
+# Los ratios (conversion, ticket medio, % objetivo...) se calculan en Power BI
+# =============================================================================
+
+
+models:
+
+  # ---------------------------------------------------------------------------
+  # Dimensiones
+  # ---------------------------------------------------------------------------
+
+  - name: dim_fecha
+    description: Calendario, una fila por dia (01/11/2024 - 31/12/2026).
+    columns:
+      - name: fecha
+        description: Dia (PK). Los hechos se relacionan por esta columna.
+        data_tests: [unique, not_null]
+      - name: fecha_id
+        description: Fecha como numero AAAAMMDD.
+        data_tests: [unique, not_null]
+      - name: anio_mes
+        description: AAAAMM, para ordenar los meses en Power BI (ordenar mes_nombre por esta columna).
+        data_tests: [not_null]
+      - name: semana_etiqueta
+        description: Semana ISO con su año, como en BI2GO ("s47 2026").
+        data_tests: [not_null]
+      - name: dia_semana
+        description: 1 = lunes ... 7 = domingo (pre_hook week_start = 1).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7]
+      - name: es_fin_de_semana
+        description: TRUE en sabado y domingo.
+      - name: fecha_aa
+        description: Mismo dia de la semana del año anterior (fecha - 364 dias), como compara BI2GO.
+        data_tests: [not_null]
+
+  - name: dim_tienda
+    description: >
+      Tiendas con todo su contexto (formato, area, area manager, comunidad,
+      provincia), una fila por tienda. Incluye las cerradas, por el historico.
+    columns:
+      - name: tienda_id
+        description: Codigo de la tienda (PK). Los hechos se relacionan por esta columna.
+        data_tests: [unique, not_null]
+      - name: tienda_nombre
+        data_tests: [not_null]
+      - name: formato
+        description: Tienda propia, Outlet, Corner ECI Mujer o Corner ECI Accesorios.
+        data_tests: [not_null]
+      - name: area_nombre
+        data_tests: [not_null]
+      - name: area_manager_nombre
+        description: Area manager que lleva la tienda (a traves de su area).
+        data_tests: [not_null]
+      - name: pais
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['España', 'Andorra', 'Portugal']
+      - name: comunidad_autonoma
+        description: Nombre oficial de la comunidad (lo reconoce el mapa de Power BI).
+        data_tests: [not_null]
+      - name: provincia
+        data_tests: [not_null]
+      - name: tiene_contador
+        description: FALSE en las tiendas sin contador de personas (sin atraccion ni conversion).
+        data_tests: [not_null]
+      - name: fecha_apertura
+        data_tests: [not_null]
+      - name: fecha_cierre
+        description: Informada solo en las tiendas cerradas.
+      - name: esta_abierta
+        description: FALSE si la tienda tiene fecha de cierre.
+        data_tests: [not_null]
+      - name: es_comparable
+        description: >
+          TRUE si la tienda estaba abierta el 16/11/2025 y sigue abierta. Solo
+          estas tiendas cuentan en la evolucion frente al año anterior (like-for-like).
+        data_tests: [not_null]
+
+  - name: dim_franja
+    description: Franjas de 30 minutos del horario comercial (09:00 a 23:00), una fila por franja.
+    columns:
+      - name: franja_id
+        description: Codigo HHMM de inicio de la franja (PK).
+        data_tests: [unique, not_null]
+      - name: franja_etiqueta
+        description: Franja completa ("10:00 – 10:30"), para tablas.
+      - name: hora_etiqueta
+        description: Hora de inicio ("10:00"), para el eje de los graficos.
+      - name: periodo
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['MAÑANA', 'MEDIODÍA', 'TARDE', 'NOCHE']
+      - name: orden
+        description: 1 a 28, para ordenar las franjas en Power BI.
+        data_tests: [unique, not_null]
+
+  - name: dim_producto
+    description: >
+      Productos con todo su contexto (marca, temporada, capsula, familia),
+      una fila por referencia.
+    columns:
+      - name: referencia
+        description: Codigo del producto (PK).
+        data_tests: [unique, not_null]
+      - name: producto_nombre
+        data_tests: [not_null]
+      - name: marca_nombre
+        data_tests: [not_null]
+      - name: temporada_id
+        description: Temporada como la llama la empresa (FW26-27, SS26...).
+        data_tests: [not_null]
+      - name: capsula
+        description: Nombre de la capsula, o su codigo si no tiene nombre, o "Sin cápsula" (accesorios).
+        data_tests: [not_null]
+      - name: familia
+        data_tests: [not_null]
+      - name: categoria
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Prenda', 'Accesorio']
+      - name: es_45_aniversario
+        data_tests: [not_null]
+      - name: pvp_es
+        description: Precio de catalogo en España. Si no venia, mediana de su familia.
+        data_tests: [not_null]
+      - name: es_precio_imputado
+        description: TRUE si el precio es una estimacion (mediana de la familia).
+      - name: imagen
+        description: Foto del producto en base64 (data URI). Para la galeria de mas vendidos.
+
+  - name: dim_vendedor
+    description: Vendedores con su tienda, una fila por vendedor. Para filtrar ventas por vendedor.
+    columns:
+      - name: vendedor_id
+        description: Codigo del vendedor (PK).
+        data_tests: [unique, not_null]
+      - name: vendedor_nombre
+        data_tests: [not_null]
+      - name: tienda_nombre
+        data_tests: [not_null]
+      - name: puesto
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Encargada', 'Dependienta']
+
+
+  - name: fct_objetivo_diario
+    description: Objetivo de venta neta por tienda y dia (grano tienda + dia).
+    columns:
+      - name: objetivo_id
+        description: Clave del objetivo, hash de tienda_id + fecha.
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tienda')
+                field: tienda_id
+      - name: fecha
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha
+      - name: objetivo_venta_neta
+        description: Objetivo en euros. Se suma por periodo en Power BI.
+        data_tests: [not_null]
+
+  - name: fct_venta_diaria_tienda
+    description: >
+      Venta por tienda y dia (grano tienda + dia). Une el TPV nuevo (tickets
+      sumados) y el TPV antiguo (legacy) con las mismas definiciones, para
+      comparar con el año anterior.
+    columns:
+      - name: venta_diaria_id
+        description: Clave, hash de tienda_id + fecha.
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tienda')
+                field: tienda_id
+      - name: fecha
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha
+      - name: venta_neta
+        description: venta_bruta - importe_devoluciones.
+        data_tests: [not_null]
+      - name: origen
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['TPV_NUEVO', 'LEGACY']
+
+  - name: fct_trafico_franja
+    description: >
+      Trafico del contador por tienda, dia y franja de 30 min (grano tienda +
+      dia + franja). Historico y tiempo real unidos.
+    columns:
+      - name: trafico_franja_id
+        description: Clave, hash de tienda_id + fecha + franja_id.
+        data_tests: [unique, not_null]
+      - name: tienda_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tienda')
+                field: tienda_id
+      - name: fecha
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha
+      - name: franja_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_franja')
+                field: franja_id
+      - name: entradas
+        description: Personas que entran en la tienda. Nulo si fallo el sensor.
+      - name: trafico_exterior
+        description: Personas que pasan por delante. Nulo si fallo el sensor.
+      - name: origen
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['HISTORICO', 'TIEMPO_REAL']
+
+  - name: fct_venta_linea
+    description: >
+      Venta por linea de ticket (grano linea). Incremental: cada ejecucion solo
+      procesa las lineas cargadas recientemente, con 3 dias de margen.
+    columns:
+      - name: linea_ticket_id
+        description: Clave de la linea (PK). Es la unique_key de la incremental.
+        data_tests: [unique, not_null]
+      - name: fecha
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha
+      - name: tienda_id
+        data_tests:
+          - not_null
+      - name: referencia
+        description: Nula en la linea de la bolsa.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_producto')
+                field: referencia
+              config:
+                severity: warn
+      - name: franja_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_franja')
+                field: franja_id
+              config:
+                severity: warn
+      - name: tipo_linea
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['PRODUCTO', 'BOLSA']
+      - name: importe
+        description: Precio final de la linea. Negativo en devoluciones.
+        data_tests: [not_null]
