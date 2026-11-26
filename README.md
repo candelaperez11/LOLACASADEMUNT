@@ -340,6 +340,9 @@ Modo **Import**, 12 relaciones muchos a uno en una sola dirección y una tabla d
 | **Más vendidos y cápsulas** | Referencias más vendidas con foto y venta por cápsula, por tienda o comunidad |
 
 Las fotos de producto viajan en **base64 dentro del propio dato**, así que el informe no depende de ninguna web.
+<img width="1324" height="744" alt="image" src="https://github.com/user-attachments/assets/0e0a9acd-0329-4bcd-8652-577fa3bcc610" />
+<img width="1327" height="727" alt="image" src="https://github.com/user-attachments/assets/76961dab-136a-4a96-9dd6-52a7cba551b6" />
+<img width="1320" height="733" alt="image" src="https://github.com/user-attachments/assets/21062c25-84c3-4517-bce4-c73dbec492cc" />
 
 ---
 
